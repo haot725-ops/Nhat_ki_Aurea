@@ -72,7 +72,6 @@ p{margin:0;text-wrap:pretty}
 .banner{display:flex;gap:10px;align-items:flex-start;border:1px dashed var(--gold-mark);background:var(--gold-soft);border-radius:14px;padding:11px 14px;margin-bottom:14px;color:var(--fg-2);font-size:13.5px}
 .banner b{color:var(--gold)}
 main{transition:opacity .3s;overflow-x:clip}
-html{overflow-x:clip}
 main.loading{opacity:.55;pointer-events:none}
 
 /* Thẻ và lưới */
@@ -300,8 +299,39 @@ input[type=range]{width:100%;accent-color:var(--btn-b);height:28px}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
 }
+
+/* Màn hình mở đầu */
+#splash{position:fixed;inset:0;z-index:100;display:grid;place-items:center;align-content:center;gap:0;text-align:center;color:#f7f3eb;overflow:hidden;
+  background:radial-gradient(600px 360px at 85% 8%,rgba(228,196,138,.22),transparent 70%),radial-gradient(520px 340px at 10% 100%,rgba(62,107,88,.35),transparent 70%),linear-gradient(160deg,#1f5444,#0f2a22);
+  transition:opacity .55s ease,visibility .55s;touch-action:manipulation}
+#splash.out{opacity:0;visibility:hidden;pointer-events:none}
+#splash::after{content:"";position:absolute;inset:0 auto 0 0;width:45%;background:linear-gradient(100deg,transparent,rgba(255,252,246,.09),transparent);animation:sheen 2.6s ease-in-out .3s both;pointer-events:none}
+#splash .sp-logo{width:132px;height:132px;display:block;overflow:visible}
+#splash .sp-ln{fill:none;stroke:#e4c48a;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0;animation:draw 1.1s cubic-bezier(.3,.7,.2,1) .25s both}
+#splash .sp-base{stroke:#e4c48a;stroke-opacity:.4;stroke-width:1.4;stroke-linecap:round;animation:fade .6s .2s both}
+#splash .sp-dot{fill:#fbf3dc;stroke:#e4c48a;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:sp-pop .5s cubic-bezier(.2,1.4,.4,1) 1.15s both}
+@keyframes sp-pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes sp-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+#splash h1{margin:22px 0 0;font-size:34px;font-weight:600;color:#fbf3dc;animation:sp-up .7s var(--ease) .8s both}
+#splash p{margin:8px 24px 0;font-size:13.5px;letter-spacing:.04em;color:#d5e0da;animation:sp-up .7s var(--ease) 1.05s both}
+body.splash-on .wrap *,body.splash-on .dock *{animation-play-state:paused}
+
+/* Nút cài ra màn hình */
+.install{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.install .in-txt{min-width:0;display:grid;gap:1px}
+.install b{font-family:var(--f-display);font-size:16px;font-weight:600}
+.install span{font-size:12.5px;color:var(--fg-3);line-height:1.35}
+.install .btn{flex:none;white-space:nowrap}
+.help-sheet{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+.help-sheet ol{margin:0 0 16px;padding-left:20px;display:grid;gap:8px;font-size:14.5px;color:var(--fg-2)}
+.help-sheet ol b{color:var(--fg)}
 </style>
-</head><body>
+</head><body class="splash-on">
+<div id="splash" role="presentation" aria-hidden="true">
+  <svg class="sp-logo" viewBox="0 0 64 64"><path class="sp-base" d="M10 50H54"/><path class="sp-ln" pathLength="1" d="M10 42 L22 28 L32 36 L44 16 L54 26"/><circle class="sp-dot" cx="54" cy="26" r="4.2"/></svg>
+  <h1>Nhật Ký Trade</h1>
+  <p>Ghi chép mỗi lệnh, giữ kỷ luật mỗi ngày</p>
+</div>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -317,6 +347,7 @@ input[type=range]{width:100%;accent-color:var(--btn-b);height:28px}
     </div>
   </header>
   <div class="banner" id="demoBanner" hidden><span aria-hidden="true">✦</span><div><b>Đang xem dữ liệu mẫu.</b> Bấm nút <b>+</b> để ghi lệnh thật đầu tiên, số liệu mẫu sẽ tự biến mất.</div></div>
+  <div class="install" id="installBar" hidden><div class="in-txt"><b>Cài Nhật Ký Trade</b><span>Mở nhanh từ màn hình chính, toàn màn hình như app thật.</span></div><button class="btn gold sm" id="installBtn" type="button">Cài ra màn hình</button></div>
   <main id="main" class="loading">
     <section class="view" id="v-hom-nay"></section>
     <section class="view" id="v-thong-ke" hidden></section>
@@ -386,6 +417,13 @@ input[type=range]{width:100%;accent-color:var(--btn-b);height:28px}
       <button class="btn danger" type="button" id="f-del" hidden>Xoá lệnh</button>
     </div>
   </form>
+</div>
+<div class="sheet-bg" id="helpSheet" hidden>
+  <div class="sheet help-sheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <h2><span id="helpTitle">Thêm ra màn hình chính</span><button type="button" class="x" id="helpClose" aria-label="Đóng">✕</button></h2>
+    <ol id="helpSteps"></ol>
+    <div class="acts"><button class="btn gold" type="button" id="helpDone">Tôi đã thêm xong</button></div>
+  </div>
 </div>
 <div class="tip" id="tip" hidden></div>
 <div class="toast" id="toast" role="status"></div>
@@ -992,6 +1030,42 @@ $('#themeBtn').addEventListener('click',function(){
 var h0=location.hash.replace('#',''); cur=TABS.indexOf(h0)>=0?h0:'hom-nay';
 show(cur); boot();
 })();
+(function(){
+  var sp=document.getElementById('splash'); if(!sp) return;
+  var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches, done=false;
+  function end(){ if(done) return; done=true; document.body.classList.remove('splash-on'); sp.classList.add('out'); setTimeout(function(){ if(sp.parentNode) sp.parentNode.removeChild(sp); },700); }
+  if(reduced){ end(); return; }
+  sp.addEventListener('click',end); sp.addEventListener('touchstart',end,{passive:true});
+  setTimeout(end,2100);
+})();
+
+(function(){
+  var KEY='nhat-ky-trade.installed', bar=document.getElementById('installBar'), btn=document.getElementById('installBtn'), hs=document.getElementById('helpSheet'), dp=null;
+  var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  function standalone(){ return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true; }
+  function flagged(){ try{ return localStorage.getItem(KEY)==='1'; }catch(e){ return false; } }
+  function setFlag(){ try{ localStorage.setItem(KEY,'1'); }catch(e){} }
+  function refresh(){ bar.hidden=standalone()||flagged(); }
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); dp=e; refresh(); });
+  window.addEventListener('appinstalled',function(){ setFlag(); dp=null; refresh(); });
+  try{ window.matchMedia('(display-mode: standalone)').addEventListener('change',refresh); }catch(e){}
+  function openHelp(){
+    document.getElementById('helpSteps').innerHTML=ios
+      ? '<li>Mở trang này bằng <b>Safari</b>.</li><li>Bấm nút <b>Chia sẻ</b> (hình ô vuông có mũi tên lên) ở thanh dưới.</li><li>Chọn <b>Thêm vào MH chính</b>, rồi bấm <b>Thêm</b>.</li>'
+      : '<li>Bấm nút <b>⋮</b> ở góc trên bên phải của Chrome.</li><li>Chọn <b>Thêm vào màn hình chính</b> (hoặc <b>Cài đặt ứng dụng</b>).</li><li>Bấm <b>Thêm</b> hoặc <b>Cài đặt</b>.</li>';
+    hs.hidden=false;
+  }
+  function closeHelp(){ hs.hidden=true; }
+  btn.addEventListener('click',function(){
+    if(dp){ var p=dp; dp=null; p.prompt(); if(p.userChoice) p.userChoice.then(function(c){ if(c&&c.outcome==='accepted'){ setFlag(); } refresh(); }); }
+    else openHelp();
+  });
+  document.getElementById('helpClose').addEventListener('click',closeHelp);
+  document.getElementById('helpDone').addEventListener('click',function(){ setFlag(); closeHelp(); refresh(); });
+  hs.addEventListener('pointerdown',function(e){ if(e.target===hs) closeHelp(); });
+  refresh();
+})();
+
 </script>
 
 </body></html>
